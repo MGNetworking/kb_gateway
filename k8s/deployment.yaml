@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+        version: v1
+    spec:
+      serviceAccountName: gateway-sa # Vérifiez que ce compte de service existe avec les permissions nécessaires
+      containers:
+        - name: api-gateway
+          image: ghmaxime88/api-gateway:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: default
+            - name: SERVER_PORT
+              value: "8080"
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 90
+            timeoutSeconds: 3
+            periodSeconds: 10
+            failureThreshold: 5

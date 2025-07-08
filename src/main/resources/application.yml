@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: api-gateway
+  server:
+    port: 8080
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: true
+        include-not-ready-addresses: false
+        primary-port-name: http
+        catalog-services-watch:
+          enabled: false
+        blocking:
+          enabled: false
+    loadbalancer:
+      mode: SERVICE
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: nutrition-api
+              uri: lb://api-nutrition
+              predicates:
+                - Path=/api/v1/**
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+  health:
+    kubernetes:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.boot.actuate: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
+    org.springframework.cloud.kubernetes: DEBUG
+    org.springframework.cloud.gateway.route: DEBUG
